@@ -1,0 +1,2 @@
+﻿import fs from 'node:fs';
+let s=fs.readFileSync('src/main.jsx','utf8');s=s.replace('href={`tel:${business.phone}`}','href={whatsappHref || `tel:${business.phone}`}');s=s.replace('Call JENDASH · number awaiting verification',"{whatsappHref ? 'Message JENDASH on WhatsApp' : 'Call JENDASH · number awaiting verification'}");s=s.replace('<p>The supplied number may be incomplete. Please use email until it is verified.</p>',"{!whatsappHref && <p>The supplied number may be incomplete. Please use email until it is verified.</p>}");fs.writeFileSync('src/main.jsx',s);

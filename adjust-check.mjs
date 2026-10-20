@@ -1,0 +1,2 @@
+﻿import fs from 'node:fs';
+let s=fs.readFileSync('update-check.mjs','utf8');s=s.replace("await page.getByRole('button',{name:'Open navigation'}).click();","await page.emulateMedia({reducedMotion:'reduce'});\n await page.getByRole('button',{name:'Open navigation'}).click();");s=s.replace("await page.waitForTimeout(500);","await page.waitForTimeout(200);\n console.log('Mobile anchor top:',await page.locator('#our-car').evaluate(e=>e.getBoundingClientRect().top));");fs.writeFileSync('update-check.mjs',s);

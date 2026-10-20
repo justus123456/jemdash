@@ -1,0 +1,32 @@
+﻿import { chromium } from '@playwright/test';
+import assert from 'node:assert/strict';
+const browser = await chromium.launch({channel:'msedge',headless:true});
+const page = await browser.newPage();
+const errors=[]; page.on('pageerror', e=>errors.push(e.message));
+await page.goto('http://localhost:5173', {waitUntil:'networkidle'});
+await page.setViewportSize({width:1440,height:1000});
+await page.screenshot({path:'desktop-preview.png',fullPage:true});
+assert.equal(await page.locator('h1').innerText(),'Good plans.\nGreat journeys.');
+for (const a of await page.locator('a[href^="#"]').all()){ const href=await a.getAttribute('href'); assert.equal(await page.locator(href).count(),1,href); }
+assert.equal(await page.locator('a[href^="mailto:"]').count()>0,true);
+assert.equal(await page.locator('a[href^="tel:"]').first().getAttribute('href'),'tel:+2348134043022');
+assert.ok(await page.locator('a[href*="wa.me/2348134043022"]').count()>0);
+await page.getByRole('button',{name:'Rear view',exact:true}).click();
+await page.waitForTimeout(200);
+assert.equal(await page.getByRole('button',{name:'Rear view',exact:true}).getAttribute('aria-pressed'),'true');
+await page.locator('summary').first().click();
+assert.equal(await page.locator('details').first().getAttribute('open'),'');
+assert.equal(await page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0)),true);
+for(const width of [360,390,768,1024,1440]){await page.setViewportSize({width,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow at ${width}`);}
+await page.setViewportSize({width:390,height:844});
+await page.getByRole('button',{name:'Open navigation'}).click();
+await page.getByRole('navigation').getByRole('link',{name:'Our car',exact:true}).click();
+assert.equal(await page.getByRole('button',{name:'Open navigation'}).getAttribute('aria-expanded'),'false');
+assert.equal(new URL(page.url()).hash,'#our-car');
+await page.goto('http://localhost:5173',{waitUntil:'networkidle'});
+await page.screenshot({path:'mobile-preview.png',fullPage:true});
+await page.emulateMedia({reducedMotion:'reduce'});
+assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior),'auto');
+assert.deepEqual(errors,[]);
+console.log('PASS: navigation, images, gallery, FAQ, contact destinations, mobile menu, reduced motion, no overflow at five widths, and no browser errors.');
+await browser.close();
